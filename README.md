@@ -17,10 +17,8 @@ Put this in your HTML:
 
 ### Node.js
 
-npm install coucougen
-
-Then in your code:
-const CouCouGen = require('coucougen');
+var CouCouGen = require('./coucougen.js');
+var num = CouCouGen();
 
 ## Quick Start
 
