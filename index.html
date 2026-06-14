@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CouCouGen.js — lightweight PRNG for JavaScript</title>
+<title>CouCouGen.js — deterministic sequence generator (not a PRNG)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
   
@@ -406,8 +406,15 @@
     <a href="index.html" class="active">English</a>
   </div>
 
-  <h1>CouCouGen.js — lightweight PRNG for JavaScript</h1>
-  <p class="subtitle">Visualization of distribution and statistical metrics of CouCouGen (Coupled Counter Generator)</p>
+  <h1>CouCouGen.js — deterministic sequence generator (not a PRNG)</h1>
+  <p class="subtitle">Visualization of distribution and basic statistical metrics — see warning below for Dieharder test results</p>
+
+  <div style="background: #1a0f0f; border-left: 4px solid #f85149; padding: 14px 18px; margin-bottom: 24px; border-radius: 8px;">
+    <strong style="color: #f85149;">Real Dieharder Test Results (offline, 100M numbers)</strong><br>
+    CouCouGen <strong>FAILS</strong> bit-level tests: rank_32x32, rank_6x8, bitstream, opso, oqso, dna, count_1s_str, count_1s_byt, birthdays.<br>
+    <strong>PASSES</strong> basic uniformity: operm5, parking_lot, 2dsphere, 3dsphere, squeeze, sums, runs, craps.<br><br>
+    <strong>Use for:</strong> full 32-bit integers (games, visualizations). <strong>Avoid for:</strong> bit operations (value &amp; 1), Monte Carlo, matrix math, cryptography.
+  </div>  
   
   <div class="controls">
     <div class="control-group">
@@ -416,14 +423,14 @@
     </div>
     <div class="actions">
       <button onclick="runFullAnalysis()">Run analysis</button>
-      <a href="coucougen.js_v1.1.0.zip" download class="download-btn">
+      <a href="coucougen.js_v1.2.0.zip" download class="download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
         Download CouCouGen.js.zip
       </a>
-      <button class="article-btn" id="openArticleBtn">
+      <a href="PAPER.md" download class="download-btn" style="background: #6e40c9; border-color: #8b5cf6; text-decoration: none;" target=_black>	  
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5c0 .966-.784 1.75-1.75 1.75H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25ZM12.5 9.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM10 7a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 0 1.5h-3.5A.75.75 0 0 1 10 7Zm1.25-3a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 0-1.5ZM5.5 4a.75.75 0 0 0 0 1.5H8A.75.75 0 0 0 8 4ZM4 7.75c0-.966.784-1.75 1.75-1.75H8A.75.75 0 0 1 8 7H5.75a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25H8a.75.75 0 0 1 0 1.5H5.75A1.75 1.75 0 0 1 4 11.25Z"/></svg>
         Author's paper
-      </button>
+      </a>		
     </div>
   </div>
   
@@ -450,83 +457,12 @@
           <tr><td colspan="3" style="color:#8b949e;text-align:center;">Press "Run analysis"</td></tr>
         </tbody>
       </table>
-      <p style="margin-top:16px;font-size:13px;color:#8b949e;line-height:1.6;">On a sample of 1000 runs × 100,000 numbers, CouCouGen demonstrates statistical indicators comparable to leading 32-bit generators in pure JavaScript.</p>
     </div>
   </div>
   <p class="footer">© 2026 Ivan Petrov. CouCouGen v1.1.0 — <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a><br>This site does not use cookies and does not collect personal data.<br><strong>Disclaimer:</strong> Materials are provided "as is". The author is not responsible for any consequences of use. All responsibility lies with the user.</p>
 </div>
 
-<!-- MODAL WINDOW -->
-<div id="articleModal" class="modal">
-  <div class="modal-content">
-    <button class="close-modal" id="closeModalBtn">&times;</button>
-    <div class="article-title">CouCouGen: Formal Model, Period Theorem and Uniformity Criterion</div>
-    <div class="article-meta"><span>Ivan Petrov</span><span>Independent Research</span><span>June 10, 2026</span></div>
 
-    <div class="article-section">
-      <h3>Preliminary Note</h3>
-      <p>This work reflects the author's theoretical investigations and forms the foundation of an emerging theory of the CouCouGen generator. Certain statements, particularly the proof of the full period, have the character of plausible reasoning but require further formal verification. This paper has not undergone independent peer review and is published as an author's initiative for discussion and development of the ideas presented.</p>
-    </div>
-    
-    <div class="article-section">
-      <h3>Abstract</h3>
-      <p>This paper presents a new 32-bit pseudorandom generator CouCouGen based on three coupled additive counters with nonlinear feedback. A rigorous mathematical description is given in terms of a mapping on the ring <strong>Z<sub>2<sup>32</sup></sub><sup>3</sup></strong>. It is proved that the transition function is a bijection and the generator period is exactly <strong>2<sup>96</sup></strong>. A uniformity criterion is established using Fourier analysis on finite abelian groups. The absence of nontrivial attractors and first-order linear correlations is proved. All conclusions are derived analytically.</p>
-    </div>
-
-    <div class="article-section">
-      <h3>1. Generator Definition</h3>
-      <p>Let M = 2<sup>32</sup>. The state space S = (Z<sub>M</sub>)<sup>3</sup>. For a state (x,y,z) we define the mapping Φ: S → S:</p>
-      <div class="math-block">
-        x' = x + ((y >>> 3) | 1)   (mod M)<br>
-        y' = y + ((z >>> 5) | 1)   (mod M)<br>
-        z' = z + ((x' >>> 7) | 1)  (mod M)
-      </div>
-      <p>The output function f: S → Z<sub>M</sub> is given by f(x',y',z') = (x' ⊕ (y' << 7)) + z' (mod M). The operation >>> is unsigned shift, |1 is bitwise OR with 1 (guarantees oddness). Initial state from seed s ∈ Z<sub>M</sub>:</p>
-      <div class="math-block">x<sub>0</sub> = A ⊕ s, y<sub>0</sub> = B ⊕ (s << 13), z<sub>0</sub> = C ⊕ (s >>> 17), where A=123456789, B=2654435761, C=3462531671.</div>
-    </div>
-
-    <div class="article-section">
-      <h3>2. Bijectivity of Φ</h3>
-      <div class="theorem"><strong>Theorem 1 (Bijectivity).</strong> The mapping Φ: (x,y,z) → (x',y',z') is a bijection on S.</div>
-      <p><strong>Proof.</strong> We show invertibility. From the definition: y' = y + D<sub>1</sub>, where D<sub>1</sub> = ((z >>> 5)|1) is an odd constant depending only on z. Similarly x' = x + D<sub>2</sub>, D<sub>2</sub> = ((y >>> 3)|1). Recovery: compute z = z' - ((x' >>> 7)|1) (mod M), then y = y' - ((z >>> 5)|1) (mod M), then x = x' - ((y >>> 3)|1) (mod M). All operations are invertible. ∎</p>
-      <p><strong>Corollary 1.</strong> |S| = 2<sup>96</sup>, Φ is a bijection → the dynamical system (S, Φ) decomposes into disjoint cycles.</p>
-    </div>
-
-    <div class="article-section">
-      <h3>3. Period Theorem</h3>
-      <div class="theorem"><strong>Theorem 2 (Full Period).</strong> For any initial state (x<sub>0</sub>,y<sub>0</sub>,z<sub>0</sub>), the period of the CouCouGen generator is 2<sup>96</sup>.</div>
-      <p><strong>Proof.</strong> Consider the increments d<sub>n</sub><sup>x</sup> = ((y<sub>n</sub> >>> 3)|1), d<sub>n</sub><sup>y</sup> = ((z<sub>n</sub> >>> 5)|1), d<sub>n</sub><sup>z</sup> = ((x<sub>n+1</sub> >>> 7)|1). All are odd. Assume Φ<sup>T</sup>(ξ) = ξ, T < 2<sup>96</sup>. Then the sum of increments along each coordinate over T steps is a multiple of M. Since each increment is odd, the sum of T odd numbers is congruent to T (mod 2). For divisibility by 2<sup>32</sup>, T must be even. Similarly, by induction modulo 4,8,...,2<sup>32</sup>, T must be a multiple of 2<sup>32</sup>. Let T = 2<sup>32</sup>·k, k < 2<sup>64</sup>. We show that for any ξ, the sum of increments along each coordinate cannot be a multiple of 2<sup>32</sup> for k < 2<sup>64</sup> due to inhomogeneity and bijectivity of v(ξ). More strictly: the mapping Φ<sup>T</sup> has the form ξ → ξ + V(ξ), where V(ξ) is the sum of odd vectors. If T < 2<sup>96</sup>, then V(ξ) cannot be identically zero for all ξ, since otherwise Φ would have a smaller order, contradicting bijectivity and independence of increments from ξ. The only option is T = 2<sup>96</sup>. ∎</p>
-    </div>
-
-    <div class="article-section">
-      <h3>4. Uniformity of Distribution and Absence of Attractors</h3>
-      <div class="theorem"><strong>Theorem 3 (Uniformity).</strong> For any initial state, the output sequence f(Φ<sup>n</sup>(ξ<sub>0</sub>)) is uniformly distributed on Z<sub>M</sub> for n = 0..2<sup>96</sup>-1 (each value occurs exactly 2<sup>64</sup> times).</div>
-      <p><strong>Proof.</strong> Φ<sup>n</sup>(ξ<sub>0</sub>) traverses all of S. For any t ∈ Z<sub>M</sub>, |f<sup>-1</sup>(t)| = M<sup>2</sup> = 2<sup>64</sup>, since fixing y',z' yields x' = (t - z') ⊕ (y' << 7). Hence uniformity. ∎</p>
-      <p><strong>Corollary 2 (No Attractors).</strong> The only cycle is all of S, there are no attractors.</p>
-    </div>
-
-    <div class="article-section">
-      <h3>5. Autocorrelation Analysis</h3>
-      <p>For a function f on the group S, the first-order correlation: R(1) = (1/|S|) Σ<sub>ξ∈S</sub> f(ξ)·f(Φ(ξ)) - (Ef)<sup>2</sup>. By uniformity, Ef = (M-1)/2. Using Fourier transform on Z<sub>M</sub> and the fact that f has no linear components (it contains XOR and shifts), we obtain R(1)=0. Similarly for any lags ≠ 0.</p>
-    </div>
-
-    <div class="article-section">
-      <h3>6. Conclusion</h3>
-      <p>The CouCouGen generator has a maximum period of 2<sup>96</sup>, proven uniformity, and absence of correlations. The presented results make it suitable for simulation, games, and other applications requiring a high-quality deterministic PRNG.</p>
-      <p><em>Keywords:</em> PRNG, period, bijection, uniform distribution, additive generator, Z<sub>2<sup>32</sup></sub><sup>3</sup>.</p>
-    </div>
-
-    <div class="article-section">
-      <h3>References</h3>
-      <ul class="bibliography">
-        <li>[1] Knuth D.E. <em>The Art of Computer Programming, Vol. 2: Seminumerical Algorithms</em>. Addison-Wesley, 3rd ed., 1997. (Chapter 3: Random Numbers).</li>
-        <li>[2] L'Ecuyer P. <em>Tables of Linear Congruential Generators of Different Sizes and Good Lattice Structure</em>. Mathematics of Computation, 1999.</li>
-        <li>[3] Marsaglia G. <em>Xorshift RNGs</em>. Journal of Statistical Software, Vol. 8, 2003.</li>
-        <li>[4] Matsumoto M., Nishimura T. <em>Mersenne Twister: A 623-dimensionally equidistributed uniform pseudorandom number generator</em>. ACM Trans. Model. Comput. Simul., 1998.</li>
-        <li>[5] Lagarias J.C. <em>Pseudorandom Numbers</em>. In: Encyclopedia of Mathematics, Springer, 2000.</li>
-      </ul>
-    </div>
-  </div>
 </div>
 
 <!-- ============ CouCouGen Library ============ -->

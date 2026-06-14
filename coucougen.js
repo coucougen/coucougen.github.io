@@ -1,9 +1,23 @@
-// CouCouGen - Coupled Counter Generator v1.1.0
+// CouCouGen - Coupled Counter Generator v1.2.0
 // ============================================
-// Deterministic pseudorandom generator with 2^96 period
+// A deterministic sequence generator based on three interacting counters
+// NOT a PRNG (Pseudorandom Number Generator) - read the disclaimer below
 // Algorithm: nonlinear coupled counters with variable step
 // Author: Ivan Petrov (2026)
 // License: MIT
+//
+// ----------------------
+// WHAT THIS IS
+// ----------------------
+//
+// CouCouGen is a deterministic number generator. Given the same seed,
+// it always produces the same sequence of 32-bit integers.
+// It is NOT a statistically perfect pseudorandom generator.
+// It is NOT cryptographically secure.
+// It has known statistical limitations (see below).
+//
+// Think of it as: "a reproducible integer sequence from coupled counters"
+// Not as: "a source of high-quality randomness"
 //
 // ----------------------
 // HOW TO INCLUDE
@@ -36,15 +50,15 @@
 //   CouCouGen(12345);  // start a new sequence with seed=12345
 //
 // Get a number in range [0, max):
-//   CouCouGen() % max;  // e.g.: CouCouGen() % 100 gives a number from 0 to 99
+//   CouCouGen() % max;  // e.g.: CouCouGen() % 100
 //
 // Get a number in range [min, max):
 //   min + (CouCouGen() % (max - min));
 //
-// Get a random element from an array:
+// Get an element from an array:
 //   var item = arr[CouCouGen() % arr.length];
 //
-// Shuffle an array (Fisher-Yates with CouCouGen):
+// Shuffle an array (Fisher-Yates):
 //   for (var i = arr.length - 1; i > 0; i--) {
 //     var j = CouCouGen() % (i + 1);
 //     var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
@@ -59,18 +73,85 @@
 //   CouCouGen(Date.now());
 //
 // ----------------------
+// KNOWN LIMITATIONS (from Dieharder tests)
+// ----------------------
+//
+// CouCouGen was tested with the Dieharder statistical suite (100M numbers).
+//
+// TEST RESULTS SUMMARY:
+//
+// ┌────────────────────────────┬────────────┬────────────┐
+// │ Test                       │ p-value    │ Assessment │
+// ├────────────────────────────┼────────────┼────────────┤
+// │ diehard_birthdays          │ 0.00000000 │ FAILED     │
+// │ diehard_operm5             │ 0.70165042 │ PASSED     │
+// │ diehard_rank_32x32         │ 0.00000000 │ FAILED     │
+// │ diehard_rank_6x8           │ 0.00000000 │ FAILED     │
+// │ diehard_bitstream          │ 0.00000000 │ FAILED     │
+// │ diehard_opso               │ 0.00000000 │ FAILED     │
+// │ diehard_oqso               │ 0.00000000 │ FAILED     │
+// │ diehard_dna                │ 0.00000000 │ FAILED     │
+// │ diehard_count_1s_str       │ 0.00000000 │ FAILED     │
+// │ diehard_count_1s_byt       │ 0.00000000 │ FAILED     │
+// │ diehard_parking_lot        │ 0.59033501 │ PASSED     │
+// │ diehard_2dsphere           │ 0.38460354 │ PASSED     │
+// │ diehard_3dsphere           │ 0.42381804 │ PASSED     │
+// │ diehard_squeeze            │ 0.70683986 │ PASSED     │
+// │ diehard_sums               │ 0.07155079 │ PASSED     │
+// │ diehard_runs (up/down)     │ 0.45027772 │ PASSED     │
+// │ diehard_runs (up/down)     │ 0.44302507 │ PASSED     │
+// │ diehard_craps (pass)       │ 0.17341786 │ PASSED     │
+// │ diehard_craps (pass/throw) │ 0.17162997 │ PASSED     │
+// └────────────────────────────┴────────────┴────────────┘
+//
+// INTERPRETATION:
+//
+// CouCouGen passes tests that check:
+//   - Basic uniformity (operm5, parking_lot, spheres, squeeze, sums, runs, craps)
+//   - Distribution of values across ranges
+//
+// CouCouGen FAILS tests that check:
+//   - Bit independence (rank_32x32, rank_6x8)
+//   - Bitstream randomness (bitstream, opso, oqso, dna)
+//   - Count of 1's in strings and bytes
+//   - Birthday spacing (birthdays)
+//
+// What this means in practice:
+//
+// Works well for:
+//   - Games (positions, rotations, item selection)
+//   - Visualizations and art installations
+//   - Procedural generation using full 32-bit integers
+//   - Prototyping and testing
+//   - Educational projects
+//
+// Use with caution for:
+//   - Bit-level operations (e.g., value & 1, bit masks)
+//   - Applications where independent bits are critical
+//
+// NOT suitable for:
+//   - Cryptography, keys, tokens, security
+//   - Monte Carlo simulations
+//   - Matrix operations / linear algebra
+//   - Scientific computing requiring statistical perfection
+//   - Gambling or betting systems
+//
+// For statistically perfect randomness, use xoshiro128+, SplitMix64,
+// or the built-in Math.random() (where appropriate).
+//
+// ----------------------
 // ALGORITHM PROPERTIES
 // ----------------------
 //
-// Period: not precisely determined, ≤ 2^96 (~7.9 × 10^28 numbers), experimentally ≥ 10^8 without repeats
+// Period: not proven, ≤ 2^96 (~7.9 × 10^28 numbers)
 // State size: 96 bits (3 × 32 bits)
-// Speed: ~5.6 ms per 100,000 numbers (~20 operations per number)
-// Uniformity: chi-square 19.02 (20 bins, expected ~19.0)
-// Mean: ~0.500036 (expected 0.5, deviation +0.007%)
-// Std. dev.: ~0.288673 (expected 0.288675, deviation −0.0007%)
-// Autocorrelation: ~0.00245
+// Speed: ~5.6 ms per 100,000 numbers in modern JS
+// Uniformity (basic): chi-square 19.02 (20 bins, expected ~19.0)
+// Mean: ~0.500036 (ideal 0.5)
+// Std. dev.: ~0.288673 (ideal ~0.288675)
+// Autocorrelation (lag 1): ~0.00245
 // Thread safety: no (single global state)
-// Cryptographic strength: not confirmed (not intended for cryptography)
+// Cryptographic strength: zero (not designed for crypto)
 //
 // ----------------------
 // DISCLAIMER
@@ -92,23 +173,25 @@
 //   — aviation, medicine, nuclear power, military applications;
 //   — any critical infrastructure and life support systems.
 //
-// THE ALGORITHM WAS NOT DESIGNED AS CRYPTOGRAPHICALLY
-// SECURE. CRYPTANALYSIS HAS NOT BEEN PERFORMED, RESISTANCE
-// TO ATTACKS HAS NOT BEEN STUDIED. FOR TASKS REQUIRING
-// SECURITY GUARANTEES, USE GENERATORS
-// WITH SCIENTIFICALLY PROVEN CRYPTOGRAPHIC STRENGTH.
+// THIS IS NOT A PSEUDORANDOM NUMBER GENERATOR (PRNG) IN THE
+// STATISTICALLY PROVEN SENSE. IT HAS KNOWN STATISTICAL FAILURES
+// AS DOCUMENTED ABOVE. FOR TASKS REQUIRING PROVEN RANDOMNESS,
+// USE ESTABLISHED GENERATORS LIKE XORSHIFT128+, SPLITMIX64,
+// OR MATH.RANDOM().
 //
-// PRIMARY USE CASES:
+// PRIMARY USE CASES (realistic):
 //
-//   — computer games and procedural content generation;
+//   — indie games and casual procedural content;
 //   — visualizations, animations and art installations;
-//   — testing, debugging, reproducible random data;
-//   — educational and research projects.
+//   — testing and debugging (reproducible sequences);
+//   — educational projects demonstrating counter coupling;
+//   — prototyping where "random enough" is sufficient.
 //
 // By using this library, you agree that:
-// 1. You understand the limitations of the algorithm
+// 1. You have read and understood the limitations
 // 2. You accept all risks
 // 3. You will not use the library in prohibited areas
+// 4. You will not expect PRNG-quality randomness
 //
 // ----------------------
 // TECHNICAL INFORMATION
@@ -127,21 +210,12 @@
 //   temp(t) = (a(t) XOR (b(t) << 7)) + c(t)  mod 2^32
 //   output(t) = (temp(t) * 1103515245 + 12345)  mod 2^32
 //
-// Nonlinearity is provided by:
-// 1. 32-bit arithmetic overflow (automatic wrap-around)
-// 2. Cross-dependencies of increments
-// 3. Combination of XOR and ADD in the output function
-// 4. Final multiplication by an odd constant (PCG-like
-//    mixer) to destroy correlations between adjacent values
-//
 // Initial constants:
 //   123456789 — arbitrary non-zero initial value
 //   2654435761 = floor(2^32 / φ), where φ = golden ratio
 //   3462531671 = floor(2^32 / sqrt(2))
-// The second and third constants are borrowed from hash functions
-// to provide avalanche effect.
 //   1103515245 — constant from LCG (Numerical Recipes)
-//   12345 — additive constant to prevent zeros
+//   12345 — additive constant
 //
 // ----------------------
 // COMPATIBILITY
@@ -159,9 +233,13 @@
 // v1.0.0 (2026) - First public release
 //   - Basic version: XOR+ADD output function
 // v1.1.0 (2026) - Statistical improvements
-//   - Added final multiplication mixer (t * 1103515245 + 12345)
-//   - Autocorrelation reduced by 30x (from 0.062 to 0.002)
-//   - Achieved parity with Math.random() in number quality
+//   - Added final multiplication mixer
+//   - Autocorrelation reduced
+// v1.2.0 (2026) - Honest repositioning
+//   - Removed "PRNG" claims
+//   - Added explicit statistical limitations
+//   - Clarified use cases
+//   - No code changes, only documentation
 //
 
 (function(global) {
